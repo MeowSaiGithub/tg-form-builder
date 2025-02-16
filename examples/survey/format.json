@@ -1,0 +1,152 @@
+{
+  "form_name": "Customer Satisfaction Survey",
+  "table_name": "customer_satisfaction_responses",
+  "review_enabled": true,
+  "db": "mysql",
+  "submit_message": "Thank you for your feedback!",
+  "fields": [
+    {
+      "name": "welcome_message",
+      "type": "photo",
+      "description": "Welcome to our survey! 🎉",
+      "location": "welcome.jpg",
+      "buttons": [
+        {
+          "text": "Start Survey 🚀",
+          "data": "start_survey"
+        }
+      ]
+    },
+    {
+      "name": "intro_video",
+      "type": "video",
+      "description": "Watch our introduction video 📹",
+      "location": "intro.mp4",
+      "buttons": [
+        {
+          "text": "Continue 🚀",
+          "data": "continue_survey"
+        }
+      ]
+    },
+    {
+      "name": "survey_guidelines",
+      "type": "document",
+      "description": "Please review our survey guidelines 📄, by continuing your agree to our guideline",
+      "location": "guidelines.pdf",
+      "buttons": [
+        {
+          "text": "I Agree 👍",
+          "data": "agree"
+        }
+      ]
+    },
+    {
+      "name": "name",
+      "label": "Your Name",
+      "type": "text",
+      "db_type": "VARCHAR(100)",
+      "required": true,
+      "skippable": false,
+      "description": "Please enter your full name.",
+      "formatting": "HTML",
+      "buttons": []
+    },
+    {
+      "name": "email",
+      "label": "Your Email",
+      "type": "email",
+      "db_type": "VARCHAR(255)",
+      "required": true,
+      "skippable": false,
+      "description": "Please enter a valid email address.",
+      "formatting": "HTML",
+      "buttons": []
+    },
+    {
+      "name": "age",
+      "label": "Your Age",
+      "type": "number",
+      "db_type": "INT",
+      "required": true,
+      "skippable": false,
+      "description": "Please enter your age (must be between 18 and 100).",
+      "formatting": "Markdown",
+      "validation": {
+        "min": 18,
+        "max": 100
+      },
+      "buttons": []
+    },
+    {
+      "name": "feedback",
+      "label": "Your Feedback",
+      "type": "text",
+      "db_type": "TEXT",
+      "required": false,
+      "skippable": true,
+      "description": "We value your feedback. Please share your thoughts.",
+      "formatting": "HTML",
+      "buttons": []
+    },
+    {
+      "name": "rating",
+      "label": "Rate our service",
+      "type": "select",
+      "options": ["1", "2", "3", "4", "5"],
+      "db_type": "VARCHAR(5)",
+      "required": true,
+      "skippable": false,
+      "description": "Please rate our service from 1 to 5.",
+      "formatting": "Markdown",
+      "buttons": [
+        {
+          "text": "⭐️ 1",
+          "data": "1"
+        },
+        {
+          "text": "⭐️⭐️ 2",
+          "data": "2"
+        },
+        {
+          "text": "⭐️⭐️⭐️ 3",
+          "data": "3"
+        },
+        {
+          "text": "⭐️⭐️⭐️⭐️ 4",
+          "data": "4"
+        },
+        {
+          "text": "⭐️⭐️⭐️⭐️⭐️ 5",
+          "data": "5"
+        }
+      ]
+    },
+    {
+      "name": "screenshot",
+      "label": "Upload a screenshot",
+      "type": "file",
+      "db_type": "TEXT",
+      "required": false,
+      "skippable": true,
+      "description": "Please upload a screenshot if applicable.",
+      "formatting": "Markdown",
+      "buttons": []
+    },
+    {
+      "name": "finish",
+      "label": "Finish survey",
+      "type": "text",
+      "required": false,
+      "skippable": false,
+      "description": "You have completed the survey. Thank you for your time.",
+      "formatting": "Markdown",
+      "buttons": [
+        {
+          "text": "Review",
+          "data": "review"
+        }
+      ]
+    }
+  ]
+}

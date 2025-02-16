@@ -1,0 +1,45 @@
+debug_mode: true  # Enables detailed logging
+enable_memory_load: true  # Loads form data into memory for faster access
+memory_limit_mb: 1024  # Sets a memory limit (in MB)
+
+bot:
+  token: "YOUR_TELEGRAM_BOT_TOKEN" # Your Telegram bot token
+
+webhook:
+  enabled: false # Enable webhook
+  url: "http://your-webhook-url/api" # Webhook URL
+  workers_count: 5 # Number of webhook workers
+  queue_size: 10 # Webhook queue size
+  auth: # Webhook authentication
+    type: "basic" # Choose from "none", "basic", and "bearer"
+    token: "bearer-token" # Webhook authentication token for "bearer"
+    username: "username" # Webhook authentication username for "basic"
+    password: "password" # Webhook authentication password for "basic"
+
+database:
+  enable: true  # Enables database support
+  use_adaptor: "mongo"  # Choose from mysql, postgres, or mongo
+  mysql:
+    #    dsn: ""  # MySQL DSN
+    username: "username"  # MySQL username
+    password: "password"  # MySQL password
+    host: "localhost"  # MySQL host
+    port: 3306  # MySQL port
+    database: "db-name"  # MySQL database name
+  mongo:
+    uri: "mongodb://localhost:27017"
+    #    addresses:
+    #      - "localhost:27017"
+    #    database: "db-name"
+    #    username: "username"
+    #    password: "password"
+    #    replica-set: "rs0"
+    #    auth-mechanism: "SCRAM-SHA-1"
+
+  postgres:
+    #    dsn: "postgresql://username:password@localhost:5432/dbname?sslmode=disable"
+    username: "username"
+    password: "password"
+    host: "localhost"
+    port: 5432
+    database: "database-name"

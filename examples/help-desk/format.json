@@ -1,0 +1,98 @@
+{
+  "form_name": "Help Desk Ticket",
+  "table_name": "help_desk_tickets",
+  "review_enabled": true,
+  "db": "postgres",
+  "submit_message": "Your ticket has been submitted successfully! We will get back to you soon.",
+  "fields": [
+    {
+      "name": "ticket_description",
+      "type": "text",
+      "label": "Ticket Description",
+      "db_type": "TEXT",
+      "required": true,
+      "skippable": false,
+      "description": "Please describe your issue in detail.",
+      "formatting": "HTML",
+      "buttons": []
+    },
+    {
+      "name": "screenshot",
+      "type": "file",
+      "label": "Upload Screenshots",
+      "db_type": "TEXT",
+      "required": false,
+      "skippable": true,
+      "description": "Please upload a screenshot of the issue.",
+      "formatting": "Markdown",
+      "buttons": []
+    },
+    {
+      "name": "error_video",
+      "type": "file",
+      "label": "Upload Error Video",
+      "db_type": "TEXT",
+      "required": false,
+      "skippable": true,
+      "description": "Upload a video showing the error or issue you're facing.",
+      "formatting": "Markdown",
+      "buttons": []
+    },
+    {
+      "name": "issue_document",
+      "type": "file",
+      "label": "Upload Error Document",
+      "db_type": "TEXT",
+      "required": false,
+      "skippable": true,
+      "description": "If you have any error logs or documents, please upload them here.",
+      "formatting": "Markdown",
+      "buttons": []
+    },
+    {
+      "name": "user_name",
+      "label": "Your Name",
+      "type": "text",
+      "db_type": "VARCHAR(100)",
+      "required": true,
+      "skippable": false,
+      "description": "Please enter your full name.",
+      "formatting": "HTML",
+      "buttons": []
+    },
+    {
+      "name": "user_email",
+      "label": "Your Email",
+      "type": "email",
+      "db_type": "VARCHAR(255)",
+      "required": true,
+      "skippable": false,
+      "description": "Please enter a valid email address.",
+      "formatting": "HTML",
+      "buttons": []
+    },
+    {
+      "name": "ticket_priority",
+      "label": "Priority Level",
+      "type": "select",
+      "options": ["Low", "Medium", "High", "Urgent"],
+      "db_type": "VARCHAR(10)",
+      "required": true,
+      "skippable": false,
+      "description": "Select the priority level of your issue.",
+      "formatting": "Markdown",
+      "buttons": []
+    },
+    {
+      "name": "finish",
+      "label": "Finish Ticket Submission",
+      "type": "text",
+      "db_type": "TEXT",
+      "required": false,
+      "skippable": true,
+      "description": "You have completed your ticket submission.",
+      "formatting": "Markdown",
+      "buttons": []
+    }
+  ]
+}
