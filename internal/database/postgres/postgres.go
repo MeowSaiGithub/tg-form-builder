@@ -1,7 +1,7 @@
 //go:build postgres || all
 // +build postgres all
 
-package postgresql
+package postgres
 
 import (
 	"fmt"
