@@ -16,7 +16,7 @@ A powerful Telegram bot that dynamically generates forms based on a provided JSO
 
 ## 🚀 Getting Start
 
-Download the bot from [Latest Release](https://github.com/telesign/tgform/releases/latest). You can download with multiple options -
+Download the bot from [Latest Release](https://github.com/MeowSaiGithub/tg-form-builder/releases/latest). You can download with multiple options -
 
 - `all` tag include all databases `mysql`, `postgres`, and `mongo`
 - `mongo` tag include only `mongo` database
