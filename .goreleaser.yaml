@@ -54,6 +54,19 @@ builds:
       - windows
       - darwin
     tags:
+      - sqlite
+    ldflags:
+      - -s -w -X main.Version={{.Version}} -X main.Commit={{.Commit}} -X main.Date={{.Date}}
+    binary: "{{ .ProjectName }}"
+    id: "sqlite"
+
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    tags:
       - all
     ldflags:
       - -s -w -X main.Version={{.Version}} -X main.Commit={{.Commit}} -X main.Date={{.Date}}
