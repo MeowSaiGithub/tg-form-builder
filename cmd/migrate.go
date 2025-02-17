@@ -71,7 +71,10 @@ var migrateCmd = &cobra.Command{
 		color.Unset()
 
 		errs := tf.ValidateForm()
-		showValidationErrors(cmd, errs)
+		if errs != nil {
+			showValidationErrors(cmd, errs)
+			return
+		}
 
 		if err := store.Store.Migrate(tf); err != nil {
 			color.Set(color.FgRed)

@@ -22,6 +22,7 @@ type Config struct {
 	MySQLConfig    MySQLConfig      `mapstructure:"mysql"`
 	MongoConfig    MongoConfig      `mapstructure:"mongo"`
 	PostgresConfig PostgreSQLConfig `mapstructure:"postgres"`
+	SQLiteConfig   SQLiteConfig     `mapstructure:"sqlite"`
 }
 
 type MySQLConfig struct {
@@ -52,6 +53,10 @@ type PostgreSQLConfig struct {
 	DSN      string `mapstructure:"dsn"`
 }
 
+type SQLiteConfig struct {
+	DSN string `mapstructure:"dsn"`
+}
+
 // ParseConfig validates and processes the configuration
 func ParseConfig(cfg *Config) (string, error) {
 	switch cfg.UseAdaptor {
@@ -61,6 +66,8 @@ func ParseConfig(cfg *Config) (string, error) {
 		return parseMongoConfig(&cfg.MongoConfig)
 	case "postgres":
 		return parsePostgresConfig(&cfg.PostgresConfig)
+	case "sqlite":
+		return parseSQLiteConfig(&cfg.SQLiteConfig)
 	default:
 		return "", fmt.Errorf("invalid use_adaptor value, must be 'mysql', 'mongo' or 'postgres'")
 	}
@@ -140,4 +147,11 @@ func parsePostgresConfig(pg *PostgreSQLConfig) (string, error) {
 	}
 
 	return pg.DSN, nil
+}
+
+func parseSQLiteConfig(sqlite *SQLiteConfig) (string, error) {
+	if sqlite.DSN == "" {
+		return "", fmt.Errorf("sqlite config error: missing required fields")
+	}
+	return sqlite.DSN, nil
 }

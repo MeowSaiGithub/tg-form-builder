@@ -189,6 +189,14 @@ var dbTypeMapping = map[string]map[string]string{
 		"DATETIME": "date",
 		"OBJECT":   "object",
 	},
+	"sqlite": {
+		"STRING":   "VARCHAR(255)", // Or "TEXT", VARCHAR is usually treated as TEXT in SQLite, but kept for consistency with other SQL types STRING mapping
+		"TEXT":     "TEXT",
+		"NUMBER":   "INTEGER", // Or "NUMERIC" if you want to store both integers and floats, but INTEGER is common for "NUMBER" type mapping
+		"BOOLEAN":  "INTEGER", // SQLite doesn't have a dedicated BOOLEAN type, INTEGER with 0 and 1 is common practice
+		"DATETIME": "TEXT",    // SQLite best practice for DATETIME is to store as TEXT in ISO8601 format, or INTEGER as Unix Time
+		"JSON":     "TEXT",    // SQLite stores JSON as TEXT using JSON1 extension (you need to ensure JSON1 extension is enabled in your SQLite build if you intend to use JSON functions)
+	},
 }
 
 // Validate and map DB type
@@ -209,7 +217,7 @@ func validateDBType(db string, userType string) (string, error) {
 	}
 
 	// Special case: Validate VARCHAR(N) for MySQL & PostgreSQL
-	if (db == "mysql" || db == "postgres") && isValidVarchar(userType) {
+	if (db == "mysql" || db == "postgres" || db == "sqlite") && isValidVarchar(userType) {
 		return userType, nil
 	}
 

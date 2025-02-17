@@ -12,7 +12,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go-tg-support-ticket/form"
 	"go-tg-support-ticket/internal/store"
-	"log"
 	"strings"
 	"time"
 )
@@ -49,8 +48,7 @@ func (a *adaptor) Migrate(schema *form.Form) error {
 	}
 
 	if exists {
-		log.Println("⚠️ Table already exists:", schema.TableName)
-		return nil // No migration needed
+		return fmt.Errorf("⚠️ Table already exists: %s", schema.TableName)
 	}
 
 	// Generate CREATE TABLE query
@@ -65,7 +63,6 @@ func (a *adaptor) Migrate(schema *form.Form) error {
 		return fmt.Errorf("failed to execute query: %w", err)
 	}
 
-	log.Println("✅ MySQL Table Created:", schema.TableName)
 	return nil
 }
 
@@ -84,12 +81,6 @@ func (a *adaptor) tableExists(tableName string) (bool, error) {
 
 // BuildCreateTableQuery generates a CREATE TABLE SQL statement dynamically
 func buildCreateTableQuery(schema *form.Form) (string, error) {
-	for _, f := range schema.Fields {
-		fmt.Println("name ", f.Name)
-		fmt.Println("dbtype ", f.DBType)
-		fmt.Println("actualdbtype ", f.ActualDBType)
-	}
-
 	if schema.TableName == "" {
 		return "", fmt.Errorf("table name cannot be empty")
 	}
