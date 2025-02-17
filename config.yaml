@@ -18,7 +18,7 @@ webhook:
 
 database:
   enable: true  # Enables database support
-  use_adaptor: "mongo"  # Choose from mysql, postgres, or mongo
+  use_adaptor: "sqlite"  # Choose from mysql, postgres, sqlite, or mongo
   mysql:
     #    dsn: ""  # MySQL DSN
     username: "username"  # MySQL username
@@ -43,3 +43,6 @@ database:
     host: "localhost"
     port: 5432
     database: "database-name"
+
+  sqlite:
+    dsn: "tf.db"

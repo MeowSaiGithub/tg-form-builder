@@ -5,7 +5,7 @@ A powerful Telegram bot that dynamically generates forms based on a provided JSO
 ## ✨ Features
 
 - 📜 **Dynamic Form Generation** – Define forms via JSON.
-- 💾 **Database Support** – Store responses in **MySQL, PostgreSQL, or MongoDB**.
+- 💾 **Database Support** – Store responses in **MySQL, PostgreSQL, SQLite or MongoDB**.
 - 🔄 **Webhook Integration** – Send data to external services.
 - 📸 **Media Support** – Forms can include **photos, videos, and documents**.
 - ✅ **Validation & Preprocessing** – Supports input validation and required fields.
@@ -22,6 +22,7 @@ Download the bot from [Latest Release](https://github.com/MeowSaiGithub/tg-form-
 - `mongo` tag include only `mongo` database
 - `postgres` tag include only `postgres` database
 - `mysql` tag include only `mysql` database
+- `sqlite` tag include only `sqlite` database
 - `none` tag include only `blank` database
 
 
@@ -66,9 +67,9 @@ webhook:
 
 database:
   enable: true  # Enables database support
-  use_adaptor: "mongo"  # Choose from mysql, postgres, or mongo
+  use_adaptor: "sqlite"  # Choose from mysql, postgres, sqlite, or mongo
   mysql:
-#    dsn: ""  # MySQL DSN
+    #    dsn: ""  # MySQL DSN
     username: "username"  # MySQL username
     password: "password"  # MySQL password
     host: "localhost"  # MySQL host
@@ -76,21 +77,24 @@ database:
     database: "db-name"  # MySQL database name
   mongo:
     uri: "mongodb://localhost:27017"
-#    addresses: 
-#      - "localhost:27017"
-#    database: "db-name"
-#    username: "username"
-#    password: "password"
-#    replica-set: "rs0"
-#    auth-mechanism: "SCRAM-SHA-1"
-   
+    #    addresses:
+    #      - "localhost:27017"
+    #    database: "db-name"
+    #    username: "username"
+    #    password: "password"
+    #    replica-set: "rs0"
+    #    auth-mechanism: "SCRAM-SHA-1"
+
   postgres:
-#    dsn: "postgresql://username:password@localhost:5432/dbname?sslmode=disable"
+    #    dsn: "postgresql://username:password@localhost:5432/dbname?sslmode=disable"
     username: "username"
     password: "password"
     host: "localhost"
     port: 5432
     database: "database-name"
+
+  sqlite:
+    dsn: "tf.db"
 ```
 # 📄 JSON Form Format Explanation
 
