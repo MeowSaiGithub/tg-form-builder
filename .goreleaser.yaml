@@ -57,7 +57,7 @@ builds:
       - sqlite
     ldflags:
       - -s -w -X main.Version={{.Version}} -X main.Commit={{.Commit}} -X main.Date={{.Date}}
-    binary: "{{ .ProjectName }}"
+    binary: "{{ .ProjectName }}-sqlite"
     id: "sqlite"
 
   - env:
