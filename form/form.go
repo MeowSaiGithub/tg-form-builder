@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -41,12 +42,81 @@ type Validation struct {
 }
 
 type Form struct {
-	FormName      string  `json:"form_name"`
-	TableName     string  `json:"table_name"`
-	ReviewEnabled bool    `json:"review_enabled"`
-	SubmitMessage string  `json:"submit_message"`
-	Fields        []Field `json:"fields"`
-	DB            string  `json:"db"`
+	FormName      string `json:"form_name"`
+	TableName     string `json:"table_name"`
+	ReviewEnabled bool   `json:"review_enabled"`
+	//SubmitMessage string  `json:"submit_message"`
+	Messages Message `json:"messages"`
+	Fields   []Field `json:"fields"`
+	DB       string  `json:"db"`
+}
+
+type Message struct {
+	Submit              string `json:"submit"`
+	SubmitButton        string `json:"submit_button"`
+	SkipButton          string `json:"skip_button"`
+	Modify              string `json:"modify"`
+	ModifyButton        string `json:"modify_button"`
+	ChooseOption        string `json:"choose_option"`
+	Review              string `json:"review"`
+	FileUploadSuccess   string `json:"file_upload_success"`
+	UploadAnother       string `json:"upload_another"`
+	UploadAnotherButton string `json:"upload_another_button"`
+	FinishUploadButton  string `json:"finish_upload_button"`
+	FinishUpload        string `json:"finish_upload"`
+	RequiredFile        string `json:"required_file"`
+	RequiredSelect      string `json:"required_select"`
+	RequiredInput       string `json:"required_input"`
+	InvalidEmail        string `json:"invalid_email"`
+	InvalidMaxNumber    string `json:"invalid_max_number"`
+	InvalidMinNumber    string `json:"invalid_min_number"`
+	InvalidNumber       string `json:"invalid_number"`
+	InvalidFormat       string `json:"invalid_format"`
+	ValidationError     string `json:"validation_error"`
+	InvalidMaxLength    string `json:"invalid_max_length"`
+	InvalidMinLength    string `json:"invalid_min_length"`
+}
+
+const (
+	Submit              string = "🎉 Thank you for submitting the form! 🎉"
+	SubmitButton        string = "✅ Submit"
+	SkipButton          string = "⏭️ Skip"
+	Modify              string = "Please enter a new value for %s:"
+	ModifyButton        string = "✏️ Modify %s"
+	ChooseOption        string = "Choose an option:"
+	Review              string = "📝 <b>Review Your Inputs:</b>\n\n"
+	FileUploadSuccess   string = "File uploaded successfully!"
+	UploadAnotherButton string = "Upload another file"
+	UploadAnother       string = "Please upload another file"
+	FinishUploadButton  string = "Finish uploading"
+	FinishUpload        string = "Do you want to upload another file or finish uploading?"
+	RequiredFile        string = "Oops! A file is required for %s. Please upload a file."
+	RequiredSelect      string = "Oops! A selection is required. The input for %s must be one of the following options: %s. Please choose one."
+	RequiredInput       string = "Oops! This %s is required. Please provide a value."
+	InvalidEmail        string = "Oops! This doesn't look like a valid email address. Please check and try again."
+	InvalidMaxNumber    string = "Oops! The value for %s must be at most %d. Please provide a valid number."
+	InvalidMinNumber    string = "Oops! The value for %s must be at least %d. Please provide a valid number."
+	InvalidNumber       string = "Oops! Please enter a valid number for %s."
+	InvalidFormat       string = "Oops! The input for %s doesn't match the required format. Please make sure it’s correct."
+	ValidationError     string = "Oops! Something went wrong while validating your input for %s. Please try again."
+	InvalidMaxLength    string = "Oops! This input for %s is too long. Please provide no more than %d characters."
+	InvalidMinLength    string = "Oops! This input for %s is too short. Please provide at least %d characters."
+)
+
+// Expected format placeholders for each message key
+var expectedPlaceholders = map[string]int{
+	"Modify":           1, // Requires 1 %s
+	"ModifyButton":     1, // Requires 1 %s
+	"RequiredFile":     1, // Requires 1 %s
+	"RequiredSelect":   2, // Requires 2 (%s, %s)
+	"RequiredInput":    1, // Requires 1 %s
+	"InvalidMaxNumber": 2, // Requires 1 %s and 1 %d
+	"InvalidMinNumber": 2, // Requires 1 %s and 1 %d
+	"InvalidNumber":    1, // Requires 1 %s
+	"InvalidFormat":    1, // Requires 1 %s
+	"ValidationError":  1, // Requires 1 %s
+	"InvalidMaxLength": 2, // Requires 1 %s and 1 %d
+	"InvalidMinLength": 2, // Requires 1 %s and 1 %d
 }
 
 func LoadTicketFormat(path string) (*Form, error) {
@@ -59,6 +129,8 @@ func LoadTicketFormat(path string) (*Form, error) {
 	if err := json.Unmarshal(file, &tf); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal ticket.json: %w", err)
 	}
+
+	tf.DefaultMessages()
 
 	return &tf, nil
 }
@@ -125,34 +197,34 @@ func validateField(field Field) []error {
 
 // ValidateForm the whole form
 // Collects and returns all errors for form validation
-func (form *Form) ValidateForm() []error {
+func (f *Form) ValidateForm() ([]error, []string) {
 	var errs []error
 
 	// 1. Ensure form name and table name are non-empty
-	if form.FormName == "" {
+	if f.FormName == "" {
 		errs = append(errs, fmt.Errorf("form_name cannot be empty"))
 	}
-	if form.TableName == "" {
+	if f.TableName == "" {
 		errs = append(errs, fmt.Errorf("table_name cannot be empty"))
 	}
 
 	// 2. Ensure ReviewEnabled is a bool (automatic in Go)
-	if form.ReviewEnabled != true && form.ReviewEnabled != false {
+	if f.ReviewEnabled != true && f.ReviewEnabled != false {
 		errs = append(errs, fmt.Errorf("review_enabled must be a boolean type"))
 	}
 
 	// 3. Validate each field and collect any errors
-	for _, field := range form.Fields {
+	for _, field := range f.Fields {
 		fieldErrors := validateField(field)
 		errs = append(errs, fieldErrors...)
 	}
 
 	// 4. DB validation (if applicable)
-	if form.DB != "" {
+	if f.DB != "" {
 		var err error
-		for i, field := range form.Fields {
+		for i, field := range f.Fields {
 			if field.DBType != "" {
-				form.Fields[i].ActualDBType, err = validateDBType(form.DB, field.DBType)
+				f.Fields[i].ActualDBType, err = validateDBType(f.DB, field.DBType)
 				if err != nil {
 					errs = append(errs, fmt.Errorf("DB validation failed for field '%s': %v", field.Name, err))
 				}
@@ -160,7 +232,9 @@ func (form *Form) ValidateForm() []error {
 		}
 	}
 
-	return errs
+	warnings := ValidateMessagePlaceholders(f.Messages)
+
+	return errs, warnings
 }
 
 // Define a mapping of custom types to actual DB types
@@ -252,4 +326,111 @@ func contains(slice []string, item string) bool {
 func isValidVarchar(userType string) bool {
 	varcharRegex := regexp.MustCompile(`^VARCHAR\(\d+\)$`)
 	return varcharRegex.MatchString(userType)
+}
+
+// ValidateMessagePlaceholders checks if the messages contain the correct number of placeholders
+func ValidateMessagePlaceholders(msg Message) []string {
+	msgValue := reflect.ValueOf(msg)
+	msgType := reflect.TypeOf(msg)
+
+	// Regex to find placeholders (%s, %d, %v)
+	placeholderRegex := regexp.MustCompile(`%[sdv]`)
+
+	msgs := make([]string, 0)
+
+	for i := 0; i < msgValue.NumField(); i++ {
+		field := msgValue.Field(i)
+		fieldName := msgType.Field(i).Name
+
+		// Ensure the field is a string and can be accessed
+		if field.Kind() == reflect.String {
+			messageText := field.String()
+
+			// Count occurrences of %s, %d, %v
+			matches := placeholderRegex.FindAllString(messageText, -1)
+			placeholderCount := len(matches)
+
+			// Get expected count from the map
+			expectedCount, exists := expectedPlaceholders[fieldName]
+
+			// If this message has a defined expected count, compare it
+			if exists && expectedCount != placeholderCount {
+				msgs = append(msgs, fmt.Sprintf("Message '%s' expects %d placeholder(s), but found %d.", fieldName, expectedCount, placeholderCount))
+			}
+		}
+	}
+	return msgs
+}
+
+// DefaultMessages returns a Message struct with default values
+func (f *Form) DefaultMessages() {
+	if f.Messages.Submit == "" {
+		f.Messages.Submit = Submit
+	}
+	if f.Messages.SubmitButton == "" {
+		f.Messages.SubmitButton = SubmitButton
+	}
+	if f.Messages.SkipButton == "" {
+		f.Messages.SkipButton = SkipButton
+	}
+	if f.Messages.Modify == "" {
+		f.Messages.Modify = Modify
+	}
+	if f.Messages.ModifyButton == "" {
+		f.Messages.ModifyButton = ModifyButton
+	}
+	if f.Messages.ChooseOption == "" {
+		f.Messages.ChooseOption = ChooseOption
+	}
+	if f.Messages.Review == "" {
+		f.Messages.Review = Review
+	}
+	if f.Messages.FileUploadSuccess == "" {
+		f.Messages.FileUploadSuccess = FileUploadSuccess
+	}
+	if f.Messages.UploadAnotherButton == "" {
+		f.Messages.UploadAnotherButton = UploadAnotherButton
+	}
+	if f.Messages.UploadAnother == "" {
+		f.Messages.UploadAnother = UploadAnother
+	}
+	if f.Messages.FinishUploadButton == "" {
+		f.Messages.FinishUploadButton = FinishUploadButton
+	}
+	if f.Messages.FinishUpload == "" {
+		f.Messages.FinishUpload = FinishUpload
+	}
+	if f.Messages.RequiredFile == "" {
+		f.Messages.RequiredFile = RequiredFile
+	}
+	if f.Messages.RequiredSelect == "" {
+		f.Messages.RequiredSelect = RequiredSelect
+	}
+	if f.Messages.RequiredInput == "" {
+		f.Messages.RequiredInput = RequiredInput
+	}
+	if f.Messages.InvalidEmail == "" {
+		f.Messages.InvalidEmail = InvalidEmail
+	}
+	if f.Messages.InvalidMaxNumber == "" {
+		f.Messages.InvalidMaxNumber = InvalidMaxNumber
+	}
+	if f.Messages.InvalidMinNumber == "" {
+		f.Messages.InvalidMinNumber = InvalidMinNumber
+	}
+	if f.Messages.InvalidNumber == "" {
+		f.Messages.InvalidNumber = InvalidNumber
+	}
+	if f.Messages.InvalidFormat == "" {
+		f.Messages.InvalidFormat = InvalidFormat
+	}
+	if f.Messages.ValidationError == "" {
+		f.Messages.ValidationError = ValidationError
+	}
+	if f.Messages.InvalidMaxLength == "" {
+		f.Messages.InvalidMaxLength = InvalidMaxLength
+	}
+	if f.Messages.InvalidMinLength == "" {
+		f.Messages.InvalidMinLength = InvalidMinLength
+	}
 }

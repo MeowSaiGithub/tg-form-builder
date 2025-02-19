@@ -94,5 +94,30 @@
       "formatting": "Markdown",
       "buttons": []
     }
-  ]
+  ],
+  "messages": {
+    "submit": "🎉 Hooray! Your form has been submitted successfully! 🎊",
+    "submit_button": "✅ Send it in!",
+    "skip_button": "⏭️ Skip for now",
+    "modify": "📝 Please enter a new value for %s:",
+    "modify_button": "✏️ Change %s",
+    "choose_option": "👇 Pick one of the options:",
+    "review": "🔎 <b>Let's Review Your Inputs:</b>\n\n",
+    "file_upload_success": "📂 Your file has been uploaded successfully!",
+    "upload_another_button": "📁 Upload another file",
+    "upload_another": "Need to upload another? Go ahead!",
+    "finish_upload_button": "✔️ Done uploading",
+    "finish_upload": "📤 Would you like to upload more files or finish?",
+    "required_file": "⚠️ A file is needed for %s. Please upload one!",
+    "required_select": "⚠️ You must make a selection! Choose one for %s from: %s.",
+    "required_input": "⚠️ This %s is mandatory. Please enter a value.",
+    "invalid_email": "🚨 That doesn’t look like a valid email. Try again!",
+    "invalid_max_number": "⚠️ The value for %s must be at most %d. Please enter a valid number.",
+    "invalid_min_number": "⚠️ The value for %s must be at least %d. Please enter a valid number.",
+    "invalid_number": "⚠️ Oops! %s needs to be a number.",
+    "invalid_format": "⚠️ The format for %s is incorrect. Please check and fix it.",
+    "validation_error": "⚠️ Something went wrong with %s. Try again!",
+    "invalid_max_length": "⚠️ %s is too long! Maximum %d characters allowed.",
+    "invalid_min_length": "⚠️ %s is too short! Minimum %d characters required."
+  }
 }

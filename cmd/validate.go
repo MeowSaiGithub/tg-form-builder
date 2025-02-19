@@ -32,7 +32,8 @@ var validateCmd = &cobra.Command{
 			return
 		}
 
-		errs := tf.ValidateForm()
+		errs, warnings := tf.ValidateForm()
+		showValidationWarnings(cmd, warnings)
 		showValidationErrors(cmd, errs)
 
 		if len(errs) == 0 {
@@ -55,6 +56,17 @@ func showValidationErrors(cmd *cobra.Command, errors []error) {
 	} else {
 		color.Set(color.FgGreen)
 		cmd.Println("✅ All validations passed successfully!")
+		color.Unset()
+	}
+}
+
+func showValidationWarnings(cmd *cobra.Command, warnings []string) {
+	if len(warnings) > 0 {
+		// Show all warnings in a formatted way
+		color.Set(color.FgYellow)
+		for _, warning := range warnings {
+			cmd.PrintErrf("⚠️ Warning: %s\n", warning)
+		}
 		color.Unset()
 	}
 }

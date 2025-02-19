@@ -1,4 +1,4 @@
-debug_mode: true  # Enables detailed logging
+debug_mode: false  # Enables detailed logging
 enable_memory_load: true  # Loads form data into memory for faster access
 memory_limit_mb: 1024  # Sets a memory limit (in MB)
 
@@ -17,7 +17,7 @@ webhook:
     password: "password" # Webhook authentication password for "basic"
 
 database:
-  enable: true  # Enables database support
+  enable: false  # Enables database support
   use_adaptor: "sqlite"  # Choose from mysql, postgres, sqlite, or mongo
   mysql:
     #    dsn: ""  # MySQL DSN

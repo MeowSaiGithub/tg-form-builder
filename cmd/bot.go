@@ -43,7 +43,8 @@ var botCmd = &cobra.Command{
 			color.Unset()
 			return
 		}
-		errs := tf.ValidateForm()
+		errs, warnings := tf.ValidateForm()
+		showValidationWarnings(cmd, warnings)
 		showValidationErrors(cmd, errs)
 
 		if len(errs) == 0 {
