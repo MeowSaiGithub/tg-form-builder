@@ -9,10 +9,18 @@ A powerful Telegram bot that dynamically generates forms based on a provided JSO
 - 🔄 **Webhook Integration** – Send data to external services.
 - 📸 **Media Support** – Forms can include **photos, videos, and documents**.
 - ✅ **Validation & Preprocessing** – Supports input validation and required fields.
-- 🎨 **Customizable Buttons** – Forms can include inline buttons for user interaction.
+- 🎨 **Customizable Buttons & Messages** – Forms can include inline buttons for user interaction and custom messages can be set.
 - 🛠️ **Debug Mode & Memory Load** – Helps with performance tuning and debugging.
 - 🔧 **Custom Executables** – Custom Executables.
 
+## 🚧 Limitation 
+
+- Only Singular flow is currently supported (which meant the form cannot dynamically change the flow).
+- Previously shown buttons and selections can be clicked again. ( will remove/disable already selected options in the future)
+
+## 🎬 Demo
+
+- See the bot in action! Watch our short demo video: [Demo Video](https://youtu.be/sa20Ms3TtRs)
 
 ## 🚀 Getting Start
 
@@ -26,7 +34,7 @@ Download the bot from [Latest Release](https://github.com/MeowSaiGithub/tg-form-
 - `none` tag include only `blank` database
 
 
-### 🛠️ Commands
+### 💻 Commands
 ### To validate the `format.json` file
 ```shell
   gotgbot validate -f format.json 
@@ -221,7 +229,32 @@ Below is a sample JSON form configuration for a **Customer Satisfaction Survey**
         }
       ]
     }
-  ]
+  ],
+  "messages": {
+    "submit": "🎉 Hooray! Your form has been submitted successfully! 🎊",
+    "submit_button": "✅ Send it in!",
+    "skip_button": "⏭️ Skip for now",
+    "modify": "📝 Please enter a new value for %s:",
+    "modify_button": "✏️ Change %s",
+    "choose_option": "👇 Pick one of the options:",
+    "review": "🔎 <b>Let's Review Your Inputs:</b>\n\n",
+    "file_upload_success": "📂 Your file has been uploaded successfully!",
+    "upload_another_button": "📁 Upload another file",
+    "upload_another": "Need to upload another? Go ahead!",
+    "finish_upload_button": "✔️ Done uploading",
+    "finish_upload": "📤 Would you like to upload more files or finish?",
+    "required_file": "⚠️ A file is needed for %s. Please upload one!",
+    "required_select": "⚠️ You must make a selection! Choose one for %s from: %s.",
+    "required_input": "⚠️ This %s is mandatory. Please enter a value.",
+    "invalid_email": "🚨 That doesn’t look like a valid email. Try again!",
+    "invalid_max_number": "⚠️ The value for %s must be at most %d. Please enter a valid number.",
+    "invalid_min_number": "⚠️ The value for %s must be at least %d. Please enter a valid number.",
+    "invalid_number": "⚠️ Oops! %s needs to be a number.",
+    "invalid_format": "⚠️ The format for %s is incorrect. Please check and fix it.",
+    "validation_error": "⚠️ Something went wrong with %s. Try again!",
+    "invalid_max_length": "⚠️ %s is too long! Maximum %d characters allowed.",
+    "invalid_min_length": "⚠️ %s is too short! Minimum %d characters required."
+  }
 }
 ```
 ### 📋 JSON Form Fields
@@ -273,14 +306,47 @@ These validation fields can be used to enforce various validation rules on the f
 
 The following table shows the custom mapping between database types and custom DB types:
 
-| Custom DB Type | MySQL | PostgreSQL | MongoDB |
-| --- | --- | --- | --- |
-| `STRING` | `VARCHAR(255)` | `VARCHAR(255)` | `string` |
-| `TEXT` | `TEXT` | `TEXT` | `string` |
-| `NUMBER` | `INT` | `INTEGER` | `int` |
-| `BOOLEAN` | `BOOLEAN` | `BOOLEAN` | `bool` |
-| `DATETIME` | `DATETIME` | `TIMESTAMP` | `date` |
-| `JSON` | `JSON` | `JSONB` | `object` |
+| Custom DB Type   | MySQL          | PostgreSQL     | MongoDB   |
+|------------------|----------------|----------------|-----------|
+| `STRING`         | `VARCHAR(255)` | `VARCHAR(255)` | `string`  |
+| `TEXT`           | `TEXT`         | `TEXT`         | `string`  |
+| `NUMBER`         | `INT`          | `INTEGER`      | `int`     |
+| `BOOLEAN`        | `BOOLEAN`      | `BOOLEAN`      | `bool`    |
+| `DATETIME`       | `DATETIME`     | `TIMESTAMP`    | `date`    |
+| `JSON`           | `JSON`         | `JSONB`        | `object`  |
+
+
+## 💬 Messages (Optional)
+
+The following table shows the Messages fields and usage. The placeholders are not mandatory but the exact amount and
+placement will have the best effect. The placeholders can be `%s`, `%d` and `%v`. `%v` will be the most suitable.
+
+| Field Name              | Description                                                                        | Default Value                                                           |
+|-------------------------|------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| `submit`                | Show this message after users submit their form                                    | "🎉 Hooray! Your form has been submitted successfully! 🎊"              |
+| `submit_button`         | Show `Submit` button message                                                       | : "✅ Send it in!"                                                       |                                         
+| `skip_button`           | Show `Skip` button message when field has skippable set true                       | "⏭️ Skip for now"                                                       |                                          
+| `modify`                | Show this message when users tried to modify an input                              | "📝 Please enter a new value for %s:"                                   |                      
+| `modify_button`         | Show `Modify` button message when users is reviewing the inputs                    | "✏️ Change %s"                                                          |                                             
+| `choose_option`         | Show this message when field type is `select`                                      | "👇 Pick one of the options:"                                           |                              
+| `review`                | Show this message after users finished all input and `review_enable` is set `true` | "🔎 <b>Let's Review Your Inputs:</b>"                                   |                            
+| `file_upload_success`   | Show this message when users successfully upload a file                            | "📂 Your file has been uploaded successfully!"                          |                                  
+| `upload_another_button` | Show `Upload` Another button message                                               | "📁 Upload another file"                                                |                                                          
+| `upload_another`        | Show this message after users uploaded a file                                      | "Need to upload another? Go ahead!"                                     |                                               
+| `finish_upload_button`  | Show `Finish` Upload button message                                                | "✔️ Done uploading"                                                     |                                                       
+| `finish_upload`         | Show this message when asking users to upload more or finish uploading.            | "📤 Would you like to upload more files or finish?"                     |                               
+| `required_file`         | Show this message when users didn't upload any file and `required` is set `true`   | "⚠️ A file is needed for %s. Please upload one!"                        |                                  
+| `required_select`       | Show this message when users didn't select an option and `required` is set `true`  | "⚠️ You must make a selection! Choose one for %s from: %s."             |                       
+| `required_input`        | Show this message when users didn't add any input and `required` is set `true`     | "⚠️ This %s is mandatory. Please enter a value."                        |                                  
+| `invalid_email`         | Show this message when users entered invalid email                                 | "🚨 That doesn’t look like a valid email. Try again!"                   |                             
+| `invalid_max_number`    | Show this message when users entered a number over the maximum limit               | "⚠️ The value for %s must be at most %d. Please enter a valid number."  |            
+| `invalid_min_number`    | Show this message when users entered a number under the minimum limit              | "⚠️ The value for %s must be at least %d. Please enter a valid number." |           
+| `invalid_number`        | Show this message when users entered non-number value                              | "⚠️ Oops! %s needs to be a number."                                     |                                               
+| `invalid_format`        | Show this message when users entered value is invalid/unsupported format           | "⚠️ The format for %s is incorrect. Please check and fix it."           |                     
+| `validation_error`      | Show this message when users entered value failed the validation logic             | "⚠️ Something went wrong with %s. Try again!"                           |                                     
+| `invalid_max_length`    | Show this message when users entered value over the maximum limit                  | "⚠️ %s is too long! Maximum %d characters allowed."                     |                               
+| `invalid_min_length`    | Show this message when users entered value under the minimum limit                 | "⚠️ %s is too short! Minimum %d characters required."                   |                             
+
 
 ## 📂 Examples
 

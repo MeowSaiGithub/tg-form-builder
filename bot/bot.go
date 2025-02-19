@@ -163,13 +163,13 @@ func (b *Bot) generateFormStep(chatID int64) {
 	// Add a "Skip" button if the field is skippable
 	if field.Skippable {
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("⏭️ Skip", "skip"),
+			tgbotapi.NewInlineKeyboardButtonData(b.format.Messages.SkipButton, "skip"),
 		))
 	}
 
 	// Send inline buttons if there are any
 	if len(rows) > 0 {
-		msg := tgbotapi.NewMessage(chatID, "Choose an option:")
+		msg := tgbotapi.NewMessage(chatID, b.format.Messages.ChooseOption)
 		msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(rows...)
 		if _, err := b.api.Send(msg); err != nil {
 			logger.PrintLog(chatID, "failed to send inline keyboard", err)
@@ -179,7 +179,7 @@ func (b *Bot) generateFormStep(chatID int64) {
 
 func (b *Bot) sendReviewMessage(chatID int64, config *form.Form) {
 	var reviewText strings.Builder
-	reviewText.WriteString("📝 <b>Review Your Inputs:</b>\n\n")
+	reviewText.WriteString(b.format.Messages.Review + "\n\n")
 	for _, field := range config.Fields {
 		value := field.UserValue
 		if value == "" {
@@ -192,13 +192,14 @@ func (b *Bot) sendReviewMessage(chatID int64, config *form.Form) {
 	var rows [][]tgbotapi.InlineKeyboardButton
 	for _, field := range config.Fields {
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("✏️ Modify %s", field.Label), fmt.Sprintf("modify_%s", field.Name)),
+			tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf(b.format.Messages.ModifyButton, field.Label), fmt.Sprintf("modify_%s", field.Name)),
 		))
 	}
 
 	// Add a submit button
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("✅ Submit", "submit"),
+		//tgbotapi.NewInlineKeyboardButtonData("✅ Submit", "submit"),
+		tgbotapi.NewInlineKeyboardButtonData(b.format.Messages.SubmitButton, "submit"),
 	))
 
 	msg := tgbotapi.NewMessage(chatID, reviewText.String())
@@ -212,13 +213,11 @@ func (b *Bot) sendReviewMessage(chatID int64, config *form.Form) {
 func (b *Bot) submitForm(chatID int64) {
 
 	if err := store.Tickets.Create(b.format.TableName, b.format.Fields); err != nil {
-		logger.PrintLog(chatID, "failed to create ticket", err)
+		logger.PrintLog(chatID, "failed to create form", err)
 	}
 
-	text := "🎉 Thank you for submitting the form! 🎉"
-	if b.format.SubmitMessage != "" {
-		text = b.format.SubmitMessage
-	}
+	//text := "🎉 Thank you for submitting the form! 🎉"
+	text := b.format.Messages.Submit
 
 	// Process the form submission (e.g., save to database)
 	msg := tgbotapi.NewMessage(chatID, text)
@@ -256,8 +255,8 @@ func (b *Bot) resetInactivityTimer(chatID int64) {
 	b.userTimers.Store(chatID, timer)
 }
 
-// ValidateField validates the user input for a field based on its validation rules.
-func ValidateField(field form.Field, text string) (string, error) {
+// validateField validates the user input for a field based on its validation rules.
+func (b *Bot) validateField(field form.Field, text string) (string, error) {
 	value := text
 
 	// Skip validation if the field is skippable and the value is empty
@@ -267,7 +266,8 @@ func ValidateField(field form.Field, text string) (string, error) {
 
 	// Check if the field is required and the value is empty
 	if field.Required && value == "" {
-		userMsg := fmt.Sprintf("Oops! The input for %s is required. Please provide a value.", field.Name)
+		//userMsg := fmt.Sprintf("Oops! The input for %s is required. Please provide a value.", field.Name)
+		userMsg := fmt.Sprintf(b.format.Messages.RequiredInput, field.Name)
 		logMsg := fmt.Errorf("validation error for %s: input is required but was not provided", field.Name)
 		return userMsg, logMsg
 	}
@@ -275,15 +275,15 @@ func ValidateField(field form.Field, text string) (string, error) {
 	// Validate based on the field type
 	switch field.Type {
 	case "text":
-		return validateTextField(field, value)
+		return b.validateTextField(field, value)
 	case "number":
-		return validateNumberField(field, value)
+		return b.validateNumberField(field, value)
 	case "email":
-		return validateEmailField(field, value)
+		return b.validateEmailField(field, value)
 	case "select":
-		return validateSelectField(field, value)
+		return b.validateSelectField(field, value)
 	case "file":
-		return validateFileField(field, value)
+		return b.validateFileField(field, value)
 	default:
 		userMsg := fmt.Sprintf("Oops! Unsupport field type")
 		logMsg := fmt.Errorf("unsupported field type: %s", field.Type)
@@ -312,7 +312,7 @@ func (b *Bot) handleUserInput(update tgbotapi.Update) {
 			if field.Name == fieldName {
 
 				// Validate the user input
-				if msg, err := ValidateField(field, text); err != nil {
+				if msg, err := b.validateField(field, text); err != nil {
 					msg := tgbotapi.NewMessage(chatID, msg)
 					if _, err := b.api.Send(msg); err != nil {
 						logger.PrintLog(chatID, "failed to send error message", err)
@@ -337,7 +337,7 @@ func (b *Bot) handleUserInput(update tgbotapi.Update) {
 		field := b.format.Fields[step]
 
 		// Validate the user input
-		if msg, err := ValidateField(field, text); err != nil {
+		if msg, err := b.validateField(field, text); err != nil {
 			logger.PrintLog(chatID, "user input validation", err)
 			msg := tgbotapi.NewMessage(chatID, msg)
 			if _, err := b.api.Send(msg); err != nil {
@@ -391,7 +391,8 @@ func (b *Bot) handleCallbackQuery(update tgbotapi.Update) {
 		}
 	case query.Data == "upload_another":
 		// User wants to upload another file, so we continue the current form step
-		msg := tgbotapi.NewMessage(chatID, "Please upload another file.")
+		//msg := tgbotapi.NewMessage(chatID, "Please upload another file.")
+		msg := tgbotapi.NewMessage(chatID, b.format.Messages.UploadAnother)
 		if _, err := b.api.Send(msg); err != nil {
 			logger.PrintLog(chatID, "failed to send upload prompt message", err)
 		}
@@ -413,15 +414,17 @@ func (b *Bot) handleCallbackQuery(update tgbotapi.Update) {
 }
 
 // validateTextField validates a text field with both user and log messages.
-func validateTextField(field form.Field, value string) (string, error) {
+func (b *Bot) validateTextField(field form.Field, value string) (string, error) {
 	// Check min and max length (if specified)
 	if field.Validation.MinLength > 0 && len(value) < field.Validation.MinLength {
-		userMsg := fmt.Sprintf("Oops! The input for %s is too short. Please provide at least %d characters.", field.Label, field.Validation.MinLength)
+		//userMsg := fmt.Sprintf("Oops! The input for %s is too short. Please provide at least %d characters.", field.Label, field.Validation.MinLength)
+		userMsg := fmt.Sprintf(b.format.Messages.InvalidMinLength, field.Label, field.Validation.MinLength)
 		logMsg := fmt.Errorf("validation error for %s: input is too short. Expected at least %d characters, got %d characters", field.Label, field.Validation.MinLength, len(value))
 		return userMsg, logMsg
 	}
 	if field.Validation.MaxLength > 0 && len(value) > field.Validation.MaxLength {
-		userMsg := fmt.Sprintf("Oops! The input for %s is too long. Please provide no more than %d characters.", field.Label, field.Validation.MaxLength)
+		//userMsg := fmt.Sprintf("Oops! The input for %s is too long. Please provide no more than %d characters.", field.Label, field.Validation.MaxLength)
+		userMsg := fmt.Sprintf(b.format.Messages.InvalidMaxLength, field.Label, field.Validation.MaxLength)
 		logMsg := fmt.Errorf("validation error for %s: input is too long. Expected no more than %d characters, got %d characters", field.Label, field.Validation.MaxLength, len(value))
 		return userMsg, logMsg
 	}
@@ -430,12 +433,14 @@ func validateTextField(field form.Field, value string) (string, error) {
 	if field.Validation.Regex != "" {
 		matched, err := regexp.MatchString(field.Validation.Regex, value)
 		if err != nil {
-			userMsg := fmt.Sprintf("Oops! Something went wrong while validating your input for %s. Please try again.", field.Label)
+			//userMsg := fmt.Sprintf("Oops! Something went wrong while validating your input for %s. Please try again.", field.Label)
+			userMsg := fmt.Sprintf(b.format.Messages.ValidationError, field.Label)
 			logMsg := fmt.Errorf("regex error for %s: %v", field.Label, err)
 			return userMsg, logMsg
 		}
 		if !matched {
-			userMsg := fmt.Sprintf("Oops! The input for %s doesn't match the required format. Please make sure it’s correct.", field.Label)
+			//userMsg := fmt.Sprintf("Oops! The input for %s doesn't match the required format. Please make sure it’s correct.", field.Label)
+			userMsg := fmt.Sprintf(b.format.Messages.InvalidFormat, field.Label)
 			logMsg := fmt.Errorf("validation error for %s: input '%s' does not match required regex '%s'", field.Label, value, field.Validation.Regex)
 			return userMsg, logMsg
 		}
@@ -445,23 +450,26 @@ func validateTextField(field form.Field, value string) (string, error) {
 }
 
 // validateNumberField validates a number field with both user and log messages.
-func validateNumberField(field form.Field, value string) (string, error) {
+func (b *Bot) validateNumberField(field form.Field, value string) (string, error) {
 	// Convert the value to a number
 	num, err := strconv.Atoi(value)
 	if err != nil {
-		userMsg := fmt.Sprintf("Oops! The input for %s must be a valid number. Please provide a valid number.", field.Label)
+		//userMsg := fmt.Sprintf("Oops! The input for %s must be a valid number. Please provide a valid number.", field.Label)
+		userMsg := fmt.Sprintf(b.format.Messages.InvalidNumber, field.Label)
 		logMsg := fmt.Errorf("validation error for %s: failed to convert '%s' to a number. Error: %v", field.Label, value, err)
 		return userMsg, logMsg
 	}
 
 	// Check min and max values (if specified)
 	if field.Validation.Min > 0 && num < field.Validation.Min {
-		userMsg := fmt.Sprintf("Oops! The input for %s must be at least %d. Please provide a valid number.", field.Label, field.Validation.Min)
+		//userMsg := fmt.Sprintf("Oops! The input for %s must be at least %d. Please provide a valid number.", field.Label, field.Validation.Min)
+		userMsg := fmt.Sprintf(b.format.Messages.InvalidMinNumber, field.Label, field.Validation.Min)
 		logMsg := fmt.Errorf("validation error for %s: input %d is less than the minimum %d", field.Label, num, field.Validation.Min)
 		return userMsg, logMsg
 	}
 	if field.Validation.Max > 0 && num > field.Validation.Max {
-		userMsg := fmt.Sprintf("Oops! The input for %s must be at most %d. Please provide a valid number.", field.Label, field.Validation.Max)
+		//userMsg := fmt.Sprintf("Oops! The input for %s must be at most %d. Please provide a valid number.", field.Label, field.Validation.Max)
+		userMsg := fmt.Sprintf(b.format.Messages.InvalidMaxNumber, field.Label, field.Validation.Max)
 		logMsg := fmt.Errorf("validation error for %s: input %d exceeds the maximum %d", field.Label, num, field.Validation.Max)
 		return userMsg, logMsg
 	}
@@ -470,17 +478,19 @@ func validateNumberField(field form.Field, value string) (string, error) {
 }
 
 // validateEmailField validates an email field with both user and log messages.
-func validateEmailField(field form.Field, value string) (string, error) {
+func (b *Bot) validateEmailField(field form.Field, value string) (string, error) {
 	// Simple email regex for validation
 	emailRegex := `^[a-z0-9]+@[a-z0-9]+\.[a-z]{2,3}$`
 	matched, err := regexp.MatchString(emailRegex, value)
 	if err != nil {
-		userMsg := fmt.Sprintf("Oops! Something went wrong while validating your email. Please try again.")
+		//userMsg := fmt.Sprintf("Oops! Something went wrong while validating your email. Please try again.")
+		userMsg := fmt.Sprintf(b.format.Messages.InvalidEmail)
 		logMsg := fmt.Errorf("email validation error for %s: regex failed with error: %v", field.Label, err)
 		return userMsg, logMsg
 	}
 	if !matched {
-		userMsg := fmt.Sprintf("Oops! The input for %s doesn't look like a valid email address. Please check and try again.", field.Label)
+		//userMsg := fmt.Sprintf("Oops! The input for %s doesn't look like a valid email address. Please check and try again.", field.Label)
+		userMsg := fmt.Sprintf(b.format.Messages.InvalidEmail)
 		logMsg := fmt.Errorf("validation error for %s: email '%s' does not match valid format", field.Label, value)
 		return userMsg, logMsg
 	}
@@ -488,23 +498,25 @@ func validateEmailField(field form.Field, value string) (string, error) {
 }
 
 // validateSelectField validates a select field with both user and log messages.
-func validateSelectField(field form.Field, value string) (string, error) {
+func (b *Bot) validateSelectField(field form.Field, value string) (string, error) {
 	// Check if the value is one of the allowed options
 	for _, option := range field.Options {
 		if value == option {
 			return "", nil
 		}
 	}
-	userMsg := fmt.Sprintf("Oops! The input for %s must be one of the following options: %s. Please choose one.", field.Label, strings.Join(field.Options, ", "))
+	//userMsg := fmt.Sprintf("Oops! The input for %s must be one of the following options: %s. Please choose one.", field.Label, strings.Join(field.Options, ", "))
+	userMsg := fmt.Sprintf(b.format.Messages.ChooseOption, field.Label, strings.Join(field.Options, ", "))
 	logMsg := fmt.Errorf("validation error for %s: invalid option '%s'. Expected one of: %s", field.Label, value, strings.Join(field.Options, ", "))
 	return userMsg, logMsg
 }
 
 // validateFileField validates a file field with both user and log messages.
-func validateFileField(field form.Field, value string) (string, error) {
+func (b *Bot) validateFileField(field form.Field, value string) (string, error) {
 	// For file fields, we can check if the value is a valid file path or URL
 	if value == "" && field.Required {
-		userMsg := fmt.Sprintf("Oops! The input for %s is required. Please upload a file.", field.Label)
+		//userMsg := fmt.Sprintf("Oops! The input for %s is required. Please upload a file.", field.Label)
+		userMsg := fmt.Sprintf(b.format.Messages.RequiredFile, field.Label)
 		logMsg := fmt.Errorf("validation error for %s: file is required but was not provided", field.Label)
 		return userMsg, logMsg
 	}
@@ -570,7 +582,8 @@ func (b *Bot) handleFileUpload(update tgbotapi.Update) {
 	b.format.Fields[step].UserValue = field.UserValue
 
 	// Notify the user that the file was uploaded successfully
-	msg := tgbotapi.NewMessage(chatID, "File uploaded successfully!")
+	//msg := tgbotapi.NewMessage(chatID, "File uploaded successfully!")
+	msg := tgbotapi.NewMessage(chatID, b.format.Messages.FileUploadSuccess)
 	if _, err := b.api.Send(msg); err != nil {
 		logger.PrintLog(chatID, "failed to send success message", err)
 	}
@@ -579,14 +592,17 @@ func (b *Bot) handleFileUpload(update tgbotapi.Update) {
 	// Add buttons for the field
 	var rows [][]tgbotapi.InlineKeyboardButton
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("Upload another", "upload_another"),
-		tgbotapi.NewInlineKeyboardButtonData("Finish uploading", "finish_uploading"),
+		//tgbotapi.NewInlineKeyboardButtonData("Upload another", "upload_another"),
+		//tgbotapi.NewInlineKeyboardButtonData("Finish uploading", "finish_uploading"),
+		tgbotapi.NewInlineKeyboardButtonData(b.format.Messages.UploadAnotherButton, "upload_another"),
+		tgbotapi.NewInlineKeyboardButtonData(b.format.Messages.FinishUploadButton, "finish_uploading"),
 	))
 
 	inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(rows...)
 
 	// Send the prompt message with buttons
-	msgPrompt := tgbotapi.NewMessage(chatID, "Do you want to upload another file or finish uploading?")
+	//msgPrompt := tgbotapi.NewMessage(chatID, "Do you want to upload another file or finish uploading?")
+	msgPrompt := tgbotapi.NewMessage(chatID, b.format.Messages.FinishUpload)
 	msgPrompt.ReplyMarkup = inlineKeyboard
 	if _, err := b.api.Send(msgPrompt); err != nil {
 		logger.PrintLog(chatID, "failed to send upload prompt", err)
