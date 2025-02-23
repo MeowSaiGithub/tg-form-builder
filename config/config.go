@@ -33,5 +33,7 @@ func LoadConfig(configPath string) (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal configuration: %w", err)
 	}
 
+	cfg.Bot.Debug = cfg.DebugMode
+
 	return &cfg, nil
 }

@@ -29,3 +29,5 @@ go.work.sum
 
 dist/
 /*.mp4
+
+*.json

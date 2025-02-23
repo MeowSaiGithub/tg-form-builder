@@ -16,7 +16,7 @@ A powerful Telegram bot that dynamically generates forms based on a provided JSO
 ## 🚧 Limitation 
 
 - Only Singular flow is currently supported (which meant the form cannot dynamically change the flow).
-- Previously shown buttons and selections can be clicked again. ( will remove/disable already selected options in the future)
+- ~~Previously shown buttons and selections can be clicked again. ( will remove/disable already selected options in the future)~~ (version >= v0.3.0)
 
 ## 🎬 Demo
 
